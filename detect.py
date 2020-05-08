@@ -6,23 +6,40 @@
 
 import cv2
 import numpy as np
-from os.path import dirname, abspath
+import os
+import pathlib
+from download_weights import download_weights
+
+######### FOLDER STRUCTURE
+YOLO_CFG_FOLDER = 'yolo-cfg'
+YOLO_CLASSES_FOLDER = 'yolo-classes'
+YOLO_WEIGHTS_FOLDER = 'yolo-weights'
+
+######## YOLO CONFIGS
+YOLO_CONFIG = f'{YOLO_CFG_FOLDER}/yolov3.cfg'
+YOLO_CLASSES = f'{YOLO_CLASSES_FOLDER}/yolov3.txt'
+YOLO_WEIGHTS = f'{YOLO_WEIGHTS_FOLDER}/yolov3-2020-05-0822.weights'
+
 
 ######### HYPERPARAMETERS
 NMS_THRESHOLD = 0.4
 CONF_THRESHOLD = 0.5
 
-######## YOLO CONFIGS
-YOLO_CONFIG = 'yolo-cfg/yolov3.cfg'
-YOLO_WEIGHTS = 'yolo-weights/yolov3.weights'
-YOLO_CLASSES = 'yolo-classes/yolov3.txt'
-
 
 def detect_objects(input_path, output_path=None, show_window=False, conf_threshold=CONF_THRESHOLD, nms_threshold=NMS_THRESHOLD, yolo_weights=YOLO_WEIGHTS, yolo_cfg=YOLO_CONFIG, yolo_classes=YOLO_CLASSES):
+    root = os.getcwd()
+
     if not output_path:
         file_name = input_path.split('/')[-1]
-        root = dirname(abspath(__file__))
         output_path = f'{root}/output/{file_name}'
+
+    if not os.path.exists(yolo_weights):
+        print(f'Weights file not found. Will download into {yolo_weights}')
+        path = pathlib.Path(yolo_weights)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        download_weights(filename=yolo_weights)
+
+
 
     image = cv2.imread(input_path)
 

@@ -2,4 +2,5 @@ opencv-python
 numpy
 pathlib
 requests
-meraki
+meraki==1.0.0b2
+googledrivedownloader

@@ -1,0 +1,49 @@
+#Adapted from https://github.com/nsadawi/Download-Large-File-From-Google-Drive-Using-Python
+from tqdm import tqdm
+import requests
+
+HOSTED_FILE = '1pkjwtV-kRoQLpgzaBurriwwcwd0t9Q5x'
+
+
+def download_file_from_google_drive(id, destination):
+    url = "https://docs.google.com/uc?export=download"
+    session = requests.Session()
+    response = session.get(url, params={'id':id}, stream=True)
+    token = get_confirm_token(response)
+
+    if token:
+        params = { 'id' : id, 'confirm' : token }
+        response = session.get(url, params=params, stream=True)
+
+    save_response_content(response, destination)
+
+
+def get_confirm_token(response):
+    for key, value in response.cookies.items():
+        if key.startswith('download_warning'):
+            return value
+    return None
+
+
+def save_response_content(response, destination):
+    chunk_size = 32768
+    total_size = int(response.headers.get('content-length', 0))
+    if not total_size:
+        total_size = 238000000 # Hard coding the size of the weights file. If you change the file, change this!
+
+    t = tqdm(total=total_size, unit='iB', unit_scale=True, desc='Downloading weights')
+    with open(destination, "wb") as f:
+        for chunk in response.iter_content(chunk_size):
+            if chunk: # filter out keep-alive new chunks
+                t.update(len(chunk))
+                f.write(chunk)
+
+
+
+def download_weights(filename, hosted_file=HOSTED_FILE):
+    download_file_from_google_drive(HOSTED_FILE, filename)
+    return True
+
+
+if __name__ == '__main__':
+    download_weights(filename='/Users/rafael.carvalho/workspace/devnet-create-2020/yolo-weights/yolov3-2.weights')

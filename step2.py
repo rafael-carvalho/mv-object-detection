@@ -3,7 +3,7 @@ import configparser
 import shutil
 import requests
 from datetime import datetime
-import meraki as mera
+import meraki
 
 config = configparser.ConfigParser()
 
@@ -11,10 +11,10 @@ config.read("config.ini")
 api_key = config.get('meraki', 'api_key')
 network_id = config.get('meraki', 'network')
 
-meraki = mera.DashboardAPI(api_key, output_log=False)
+dashboard = meraki.DashboardAPI(api_key, output_log=False, print_console=False)
 
 def get_cameras(serials=None):
-    devices = meraki.devices.getNetworkDevices(network_id)
+    devices = dashboard.networks.getNetworkDevices(network_id)
     cameras = [x for x in devices if x['model'].startswith('MV')]
     return cameras
 
@@ -36,7 +36,7 @@ def __download_file(file_name, file_url):
 if __name__ == '__main__':
     cams = get_cameras()
     for cam in cams:
-        snapshot_output = meraki.cameras.generateNetworkCameraSnapshot(network_id, cam['serial'])
+        snapshot_output = dashboard.camera.generateDeviceCameraSnapshot(cam['serial'])
         snapshot_url = snapshot_output['url']
         saved_image_path = __download_file(f'snapshots/{cam["name"]}.png', snapshot_url)
         if saved_image_path:

@@ -38,6 +38,8 @@ This program uses 2 mandatory and 1 optional arguments:
 3) CAMERAS - Optional - If you don't want all cameras on your network to be scanned, you can create a string that contains a series
     of Serial Numbers separated by ;
 
+
+There are 3 ways you can set the variables:
 1) config.ini
  
 Create a file at the root called config.ini with the following structure: 

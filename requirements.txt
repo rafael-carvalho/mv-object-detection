@@ -1,7 +1,7 @@
-opencv-python
-numpy
-pathlib
-requests
+opencv-python==4.2.0.34
+numpy==1.18.4
+pathlib==1.0.1
+requests==2.23.0
 meraki==1.0.0b2
-googledrivedownloader
-tqdm
+googledrivedownloader==0.4
+tqdm==4.46.0

@@ -1,3 +1,4 @@
+#Adapted from https://www.arunponnusamy.com/yolo-object-detection-opencv-python.html
 #############################################
 # Object detection - YOLO - OpenCV
 # Author : Arun Ponnusamy   (July 16, 2018)
@@ -27,6 +28,23 @@ CONF_THRESHOLD = 0.5
 
 
 def detect_objects(input_path, output_path=None, show_window=False, conf_threshold=CONF_THRESHOLD, nms_threshold=NMS_THRESHOLD, yolo_weights=YOLO_WEIGHTS, yolo_cfg=YOLO_CONFIG, yolo_classes=YOLO_CLASSES):
+    """
+    Takes a locally stored image as the input and runs the model to detect objects within a specific class set.
+
+    :param input_path: filepath to image that will be processed
+    :param output_path: where the processed image will be saved
+    :param show_window: if set to True, a window will pop-up with the image. If False, the image will only be saved.
+    :param conf_threshold: double between 0 and 1 that represents the minimum confidence of the detection to be
+    considered a detection
+    :param nms_threshold: double between 0 and 1 - Non-maximum Suppression threshold.
+    :param yolo_weights: str filepath to the model that has been trained (weights)
+    :param yolo_cfg: str filepath to YOLO configuration file
+    :param yolo_classes: str filepath to a list of classes that can be detected
+    :return: tuple with 3 values:
+        number of (detections),
+        their (classes);
+        where the output image was stored (output_path)
+    """
     root = os.getcwd()
 
     if not output_path:

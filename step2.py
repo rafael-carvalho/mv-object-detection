@@ -1,25 +1,116 @@
 from detect import detect_objects
 import configparser
-import shutil
 import requests
-from datetime import datetime
 import meraki
+import os
+import pathlib
 
-config = configparser.ConfigParser()
+FOLDER_SNAPSHOTS = 'snapshots'
+FOLDER_OUTPUT = 'output'
 
-config.read("config.ini")
-api_key = config.get('meraki', 'api_key')
-network_id = config.get('meraki', 'network')
+# Environment keys
+API_KEY = None
+NETWORK_ID = None
+TARGET_CAMERAS = None
 
-dashboard = meraki.DashboardAPI(api_key, output_log=False, print_console=False)
+CONFIG_FILE_PATH = 'config.ini'
 
-def get_cameras(serials=None):
+
+def load_config_variables():
+    """
+    Sets up the environment with the API Key and the Network ID of your Meraki environment.
+    If you don't want all cameras on your network to be scanned, you can create a string that contains a series
+    of Serial Numbers separated by ;
+    :return: api key (string); network_id (string); target_cameras (list of string serials)
+    """
+    api_key = None
+    network_id = None
+    target_cameras = None
+
+    if API_KEY and NETWORK_ID:
+        api_key = API_KEY
+        network_id = NETWORK_ID
+        target_cameras = TARGET_CAMERAS
+
+    elif os.path.exists(CONFIG_FILE_PATH):
+        config = configparser.ConfigParser()
+        config.read("config.ini")
+        api_key = config.get('meraki', 'API_KEY')
+        network_id = config.get('meraki', 'NETWORK_ID')
+        if config.has_option('meraki', 'CAMERAS'):
+            target_cameras = config.get('meraki', 'CAMERAS')
+
+    else:
+        api_key = os.getenv('API_KEY')
+        network_id = os.getenv('NETWORK_ID')
+        target_cameras = os.getenv('CAMERAS')
+
+    if not api_key or not network_id:
+        raise Exception('Meraki API Key and Meraki Network Id are mandatory params. You can hard code them above, '
+                        'use a config.ini file or set them as environment variables. Camera serials should be a string '
+                        'separated by ;. Camera serials are optional')
+
+    if target_cameras:
+        target_cameras = target_cameras.split(';')
+
+    return api_key, network_id, target_cameras
+
+
+def create_directories():
+    """
+    Creates the directories needed by the script: /snapshots and /output.
+    The /yolo-weights directory will be created by detect.py
+    """
+    if not os.path.exists(FOLDER_SNAPSHOTS):
+        path = pathlib.Path(FOLDER_SNAPSHOTS)
+        print(f'Snapshots folder does not exist... creating: {path}')
+        path.mkdir(parents=True, exist_ok=True)
+
+    if not os.path.exists(FOLDER_OUTPUT):
+        path = pathlib.Path(FOLDER_OUTPUT)
+        print(f'Output folder does not exist... creating: {path}')
+        path.mkdir(parents=True, exist_ok=True)
+
+
+def establish_meraki_connection(api_key):
+    """
+    Uses the Meraki SDK to create the Dashboard object
+    :param api_key: key assigned to a Meraki network with cameras
+    :return: DashboardAPI object
+    """
+    return meraki.DashboardAPI(api_key, output_log=False, print_console=False)
+
+
+def get_cameras(dashboard, network_id, target_cameras=None):
+    """
+    Retrieves the camera objects from Meraki's dashboard.
+
+    Parameters
+    dashboard : DashboardAPI
+        Object instantiated with admin's API key
+    network_id : str
+        Meraki network id that has cameras
+    target_cameras : list
+        Optional list of camera serial numbers
+    :return: list of cameras that will have snapshots taken
+    """
     devices = dashboard.networks.getNetworkDevices(network_id)
     cameras = [x for x in devices if x['model'].startswith('MV')]
+    if target_cameras:
+        cameras = [x for x in devices if x['serial'] in target_cameras]
     return cameras
 
-# Download file from URL and write to local tmp storage
+
 def __download_file(file_name, file_url):
+    """
+    Downloads an image into a file. We'll try 30 times before we give up.
+    Parameters
+    ----------
+    file_name : str
+        Relative / full path of the destination filename
+    file_url : str
+        URL of the snapshot.
+    """
     attempts = 1
     while attempts <= 30:
         r = requests.get(file_url, stream=True)
@@ -33,17 +124,39 @@ def __download_file(file_name, file_url):
     print(f'Unsuccessful in 30 attempts retrieving {file_url}')
     return None
 
+
 if __name__ == '__main__':
-    cams = get_cameras()
+    """
+    Steps:
+        1) Create necessary directories;
+        2) Connect to Meraki;
+        3) Get a list of Meraki Cameras;
+        4) For each camera:
+            4.1) Downloads a snapshot of the current field of view of the camera;
+            4.2) Runs the YOLO model trained on the COCO dataset and stores the image locally.
+    """
+    create_directories()
+    api_key, network_id, target_cameras = load_config_variables()
+    dashboard = establish_meraki_connection(api_key)
+    cams = get_cameras(dashboard, network_id, target_cameras)
+    print(f'Will process snapshots of {len(cams)} MV cameras')
     for cam in cams:
-        snapshot_output = dashboard.camera.generateDeviceCameraSnapshot(cam['serial'])
+        serial_number = cam['serial']
+        model = cam['model']
+        print('---------')
+        print(f'{serial_number} ({model})')
+        print('    Downloading snapshot')
+        snapshot_output = dashboard.camera.generateDeviceCameraSnapshot(serial_number)
         snapshot_url = snapshot_output['url']
-        saved_image_path = __download_file(f'snapshots/{cam["name"]}.png', snapshot_url)
+        print('    Processing objects')
+        saved_image_path = __download_file(f'{FOLDER_SNAPSHOTS}/{serial_number}.png', snapshot_url)
         if saved_image_path:
             detections, classes, output_path = detect_objects(saved_image_path, show_window=False)
             if detections > 0:
-                print(f'{cam["name"]} --> {detections} object of {len(set(classes))} different classes = {str(classes)}')
+                print(f'    {detections} object of {len(set(classes))} '
+                      f'different classes = {str(classes)}.')
+                print(f'    {output_path}')
             else:
-                print(f"{cam['name']} No objects were detected :'()")
+                print(f"    No objects were detected.")
         else:
-            print(f'{cam["name"]} Error downloading the snapshot')
+            print(f"    Error downloading the snapshot.")

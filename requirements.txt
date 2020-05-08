@@ -4,3 +4,4 @@ pathlib
 requests
 meraki==1.0.0b2
 googledrivedownloader
+tqdm

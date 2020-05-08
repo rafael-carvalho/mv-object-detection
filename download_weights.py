@@ -42,7 +42,3 @@ def save_response_content(response, destination):
 def download_weights(filename, hosted_file=HOSTED_FILE):
     download_file_from_google_drive(HOSTED_FILE, filename)
     return True
-
-
-if __name__ == '__main__':
-    download_weights(filename='/Users/rafael.carvalho/workspace/devnet-create-2020/yolo-weights/yolov3-2.weights')

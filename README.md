@@ -1,3 +1,4 @@
+# Detecting Custom Objects on a Meraki MV Camera
 Artificial Intelligence can unlock new methods of how enterprises engage with their customers, their products, and their physical spaces. Being able to detect different categories of objects may be instrumental for organizations to be successful.
 
 Machine Learning (ML) techniques can be applied to detect objects on images based on triggers such as motion detection. 
@@ -19,19 +20,29 @@ The workshop will introduce the foundational knowledge of ML applied to object d
 ##### Trained Model
 - The first thing the script will do is to download the trained Machine Learning model (called weigths) to a local folder.
 
+
+##### Required libraries
+
+To easily install or upgrade to the latest release, use [pip](http://www.pip-installer.org/).
+
+```shell
+pip install -r requirements.txt
+```
+
+
 #### Configuring the app
 ##### Variables 
 This program uses 2 mandatory and 1 optional arguments:
-1) API_KEY - Mandatory - [Documentation](https://documentation.meraki.com/zGeneral_Administration/Other_Topics/The_Cisco_Meraki_Dashboard_API) on how to obtain an API Key - 
+1) API_KEY - Mandatory - [Documentation](https://documentation.meraki.com/zGeneral_Administration/Other_Topics/The_Cisco_Meraki_Dashboard_API) on how to obtain an API Key 
 2) NETWORK_ID - Mandatory - [Guide](https://community.cisco.com/t5/mobility-blogs/dashboard-apis-optimizing-your-daily-workflow/ba-p/3659433) on how to obtain your Network id
-3) CAMERAS - If you don't want all cameras on your network to be scanned, you can create a string that contains a series
+3) CAMERAS - Optional - If you don't want all cameras on your network to be scanned, you can create a string that contains a series
     of Serial Numbers separated by ;
 
 1) config.ini
  
 Create a file at the root called config.ini with the following structure: 
 
-```
+```shell
 [meraki]
 API_KEY=6B2u7njMl8G0VA8KJfRlPKMiY6tf6Cd1paPIrjtL
 NETWORK_ID=L_689553880529869765
@@ -40,6 +51,11 @@ CAMERAS=Q2EV-43C3-BZVX;Q2HV-43C3-BZVP
 2) Environment variables
 
 Export API_KEY, NETWORK_ID and CAMERAS as env variables.
+```shell
+export API_KEY=6B2u7njMl8G0VA8KJfRlPKMiY6tf6Cd1paPIrjtL
+export NETWORK_ID=L_689553880529869765
+export CAMERAS=Q2EV-43C3-BZVX;Q2HV-43C3-BZVP
+```
 
 3) Hard code (not recommended)
 

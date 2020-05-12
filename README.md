@@ -77,4 +77,9 @@ Uses one of the provided images to run the YOLOv3 model.
     
     4.1) Downloads a snapshot of the current field of view of the camera;
     
-    4.2) Runs the YOLO model trained on the COCO dataset and stores the image locally. 
+    4.2) Runs a YOLOv3 model previously trained on the COCO dataset and stores the image locally. 
+    
+
+If you like this code or if you have any questions, feel free to reach out:
+
+[LinkedIn](http://linkedin.com/in/rafaelloureirodecarvalho/?locale=en_US)

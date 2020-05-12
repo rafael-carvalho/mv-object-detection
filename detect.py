@@ -1,4 +1,4 @@
-#Adapted from https://www.arunponnusamy.com/yolo-object-detection-opencv-python.html
+# Adapted from https://www.arunponnusamy.com/yolo-object-detection-opencv-python.html
 #############################################
 # Object detection - YOLO - OpenCV
 # Author : Arun Ponnusamy   (July 16, 2018)
@@ -47,24 +47,27 @@ def detect_objects(input_path, output_path=None, show_window=False, conf_thresho
     """
     root = os.getcwd()
 
+    # Creates the folder for the output images
     if not output_path:
         file_name = input_path.split('/')[-1]
         output_path = f'{root}/output/{file_name}'
 
+    # Downloads the weights file (pre-trained) model if it does not exist already
     if not os.path.exists(yolo_weights):
         print(f'Weights file not found. Will download into {yolo_weights}')
         path = pathlib.Path(yolo_weights)
         path.parent.mkdir(parents=True, exist_ok=True)
         download_weights(filename=yolo_weights)
 
-
-
+    # Reads the image file into an OpenCV matrix
     image = cv2.imread(input_path)
 
+    # Sets some image attributes
     Width = image.shape[1]
     Height = image.shape[0]
     scale = 0.00392
 
+    # Reads the text file with a list of all the categories of objects that have been trained on the model.
     classes = None
 
     with open(yolo_classes, 'r') as f:
@@ -72,12 +75,17 @@ def detect_objects(input_path, output_path=None, show_window=False, conf_thresho
 
     colors = np.random.uniform(0, 255, size=(len(classes), 3))
 
+    # Loads the Neural Network from the file, based on the config that has been passed.
     net = cv2.dnn.readNet(yolo_weights, yolo_cfg)
 
+    # Transforms the image into a Blob to make sure every image always has the same aspect ratio.
     blob = cv2.dnn.blobFromImage(image, scale, (416, 416), (0, 0, 0), True, crop=False)
 
+    # Initializes the Neural Network with the input
     net.setInput(blob)
 
+    # Forward propagates the input with the pre-trained weights and saves the outputs.
+    # This is where the 'magic happens' and the detections are made from the model
     outs = net.forward(get_output_layers(net))
 
     class_ids = []
@@ -100,6 +108,8 @@ def detect_objects(input_path, output_path=None, show_window=False, conf_thresho
                 confidences.append(float(confidence))
                 boxes.append([x, y, w, h])
 
+    # Draws the boxes around the object as well as the confidence level.
+    # Every class gets the same bounding box color.
     indices = cv2.dnn.NMSBoxes(boxes, confidences, conf_threshold, nms_threshold)
 
     for i in indices:
@@ -111,15 +121,21 @@ def detect_objects(input_path, output_path=None, show_window=False, conf_thresho
         h = box[3]
         draw_prediction(image, class_ids[i], confidences[i], round(x), round(y), round(x + w), round(y + h), classes, colors)
 
+    # If the show_window parameter is set to True, then it shows a pop-up window.
+    # If the user presses the letter 'q', the pop-up window goes away
     if show_window:
         cv2.imshow("object detection", image)
         while True:
             if cv2.waitKey(0) & 0xFF == ord('q'):
                 break
 
+    # Writes the image from the memory to a local file
     cv2.imwrite(output_path, image)
+
+    # Remove the pop-up window
     cv2.destroyAllWindows()
 
+    # Lists of the detected classes
     output_classes = list()
     for id in class_ids:
         output_classes.append(classes[id])

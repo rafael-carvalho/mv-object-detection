@@ -1,3 +1,9 @@
+################################################################
+# Author : Rafa Carvalho   (May 16th, 2020)                    #
+# E-mail : rafacarv@cisco.com                                  #
+# Code: https://github.com/rafael-carvalho/mv-object-detection #
+################################################################
+
 from detect import detect_objects
 import configparser
 import requests
@@ -133,7 +139,7 @@ if __name__ == '__main__':
         3) Get a list of Meraki Cameras;
         4) For each camera:
             4.1) Downloads a snapshot of the current field of view of the camera;
-            4.2) Runs the YOLO model trained on the COCO dataset and stores the image locally.
+            4.2) Runs the YOLOv3 model trained on the COCO dataset and stores the image locally.
     """
     create_directories()
     api_key, network_id, target_cameras = load_config_variables()

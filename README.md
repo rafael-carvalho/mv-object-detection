@@ -7,11 +7,6 @@ Practical applications can be: anomaly detection in manufacturing, customer enga
 Data governance, privacy and cost concerns can be impeditive for organizations to use public cloud object detection API’s, such as AWS Rekognition or Google AutoML. Also, some applications require the flexibility to train systems to identify customized classes of objects, while utilizing resources owned by the organization.
 The workshop will introduce the foundational knowledge of ML applied to object detection. We will use publicly licensed projects such as the You Only Look Once (YOLO) recognition system and the COCO dataset, a large-scale classification collection.
 
-<p float="left">
-  <img src="sample_images/baseball.jpg" width="100" />
-  <img src="sample_output/baseball.jpg" width="100" /> 
-</p>
-
 #### Sample Input 
 ![alt-text-1](sample_images/mv-image.png "title-1") 
 

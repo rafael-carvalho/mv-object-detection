@@ -10,6 +10,7 @@ import requests
 import meraki
 import os
 import pathlib
+import traceback
 
 FOLDER_SNAPSHOTS = 'snapshots'
 FOLDER_OUTPUT = 'output'
@@ -151,18 +152,27 @@ if __name__ == '__main__':
         model = cam['model']
         print('---------')
         print(f'{serial_number} ({model})')
-        print('    Downloading snapshot')
-        snapshot_output = dashboard.camera.generateDeviceCameraSnapshot(serial_number)
-        snapshot_url = snapshot_output['url']
-        print('    Processing objects')
-        saved_image_path = __download_file(f'{FOLDER_SNAPSHOTS}/{serial_number}.png', snapshot_url)
-        if saved_image_path:
-            detections, classes, output_path = detect_objects(saved_image_path, show_window=False)
+        try:
+            print('    Generating snapshot')
+            snapshot_output = dashboard.camera.generateDeviceCameraSnapshot(serial_number)
+            print('    Downloaded snapshot')
+            snapshot_url = snapshot_output['url']
+            print('    Processing objects')
+            saved_image_path = __download_file(f'{FOLDER_SNAPSHOTS}/{serial_number}.png', snapshot_url)
+            detections, classes, output_path = detect_objects(saved_image_path, show_window=False, conf_threshold=0.3)
             if detections > 0:
                 print(f'    {detections} object of {len(set(classes))} '
                       f'different classes = {str(classes)}.')
-                print(f'    {output_path}')
+
             else:
                 print(f"    No objects were detected.")
-        else:
-            print(f"    Error downloading the snapshot.")
+
+            print(f'    {output_path}')
+
+        except meraki.exceptions.APIError:
+            print(f"    Error downloading the snapshot. Is the camera online?")
+
+        except:
+            print(f"    An unknown error happened when processing camera {serial_number}."
+                  f"Uncomment line below for more details")
+            # traceback.print_exc()

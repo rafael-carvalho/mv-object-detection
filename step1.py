@@ -11,7 +11,7 @@ if __name__ == '__main__':
     image_path = 'sample_images/elephant.jpg'
 
     # Trigger the detection algorithm
-    detections, classes, output_path = detect_objects(image_path, show_window=True, conf_threshold=.3)
+    detections, classes, output_path = detect_objects(image_path, show_window=True, conf_threshold=.6)
 
     # Print results
     if detections > 0:

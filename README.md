@@ -56,6 +56,7 @@ Create a file at the root called config.ini with the following structure:
 API_KEY=6B2u7njMl8G0VA8KJfRlPKMiY6tf6Cd1paPIrjtL
 NETWORK_ID=L_689553880529869765
 CAMERAS=Q2EV-43C3-BZVX;Q2HV-43C3-BZVP
+RTSP=Q2EV-43C3-BZVX
 ```
 2) Environment variables
 
@@ -64,6 +65,7 @@ Export API_KEY, NETWORK_ID and CAMERAS as env variables.
 export API_KEY=6B2u7njMl8G0VA8KJfRlPKMiY6tf6Cd1paPIrjtL
 export NETWORK_ID=L_689553880529869765
 export CAMERAS=Q2EV-43C3-BZVX;Q2HV-43C3-BZVP
+export RTSP=Q2EV-43C3-BZVX
 ```
 
 3) Hard code (not recommended)

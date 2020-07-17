@@ -1,7 +1,11 @@
+googledrivedownloader==0.4
+imageio-ffmpeg
+Keras==2.3.1
 opencv-python==4.2.0.34
+meraki==1.0.0b8
 numpy==1.18.4
 pathlib==1.0.1
 requests==2.23.0
-meraki==1.0.0b2
-googledrivedownloader==0.4
+tensorflow==2.2.0
 tqdm==4.46.0
+wtforms

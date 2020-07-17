@@ -1,4 +1,5 @@
 # Adapted from https://www.arunponnusamy.com/yolo-object-detection-opencv-python.html
+# RTSP feed adapted from https://github.com/zishor/yolo-python-rtsp
 #############################################
 # Object detection - YOLO - OpenCV
 # Author : Arun Ponnusamy   (July 16, 2018)
@@ -10,6 +11,8 @@ import numpy as np
 import os
 import pathlib
 from download_weights import download_weights
+import imageio_ffmpeg as imageio
+
 
 ######### FOLDER STRUCTURE
 YOLO_CFG_FOLDER = 'yolo-cfg'
@@ -26,8 +29,11 @@ YOLO_WEIGHTS = f'{YOLO_WEIGHTS_FOLDER}/yolov3.weights'
 NMS_THRESHOLD = 0.4
 CONF_THRESHOLD = 0.5
 
+global COLORS
+COLORS = None
 
-def detect_objects(input_path, output_path=None, show_window=False, conf_threshold=CONF_THRESHOLD, nms_threshold=NMS_THRESHOLD, yolo_weights=YOLO_WEIGHTS, yolo_cfg=YOLO_CONFIG, yolo_classes=YOLO_CLASSES):
+
+def detect_objects(input_path=None, output_path=None, show_window=False, input_array=None, conf_threshold=CONF_THRESHOLD, nms_threshold=NMS_THRESHOLD, yolo_weights=YOLO_WEIGHTS, yolo_cfg=YOLO_CONFIG, yolo_classes=YOLO_CLASSES):
     """
     Takes a locally stored image as the input and runs the model to detect objects within a specific class set.
 
@@ -48,7 +54,7 @@ def detect_objects(input_path, output_path=None, show_window=False, conf_thresho
     root = os.getcwd()
 
     # Creates the folder for the output images
-    if not output_path:
+    if not output_path and input_array is None:
         file_name = input_path.split('/')[-1]
         output_path = f'{root}/output/{file_name}'
 
@@ -59,13 +65,19 @@ def detect_objects(input_path, output_path=None, show_window=False, conf_thresho
         path.parent.mkdir(parents=True, exist_ok=True)
         download_weights(filename=yolo_weights)
 
-    # Reads the image file into an OpenCV matrix
-    image = cv2.imread(input_path)
+    if input_path:
+        # Reads the image file into an OpenCV matrix
+        image = cv2.imread(input_path)
+    else:
+        # Already have an input array provided from the video stream
+        image = input_array
 
     # Sets some image attributes
     Width = image.shape[1]
     Height = image.shape[0]
     scale = 0.00392
+
+    print(f"{Width} x {Height}")
 
     # Reads the text file with a list of all the categories of objects that have been trained on the model.
     classes = None
@@ -73,7 +85,9 @@ def detect_objects(input_path, output_path=None, show_window=False, conf_thresho
     with open(yolo_classes, 'r') as f:
         classes = [line.strip() for line in f.readlines()]
 
-    colors = np.random.uniform(0, 255, size=(len(classes), 3))
+    global COLORS
+    if COLORS is None:
+        COLORS = np.random.uniform(0, 255, size=(len(classes), 3))
 
     # Loads the Neural Network from the file, based on the config that has been passed.
     net = cv2.dnn.readNet(yolo_weights, yolo_cfg)
@@ -119,7 +133,7 @@ def detect_objects(input_path, output_path=None, show_window=False, conf_thresho
         y = box[1]
         w = box[2]
         h = box[3]
-        draw_prediction(image, class_ids[i], confidences[i], round(x), round(y), round(x + w), round(y + h), classes, colors)
+        draw_prediction(image, class_ids[i], confidences[i], round(x), round(y), round(x + w), round(y + h), classes, COLORS)
 
     # If the show_window parameter is set to True, then it shows a pop-up window.
     # If the user presses the letter 'q', the pop-up window goes away
@@ -128,12 +142,10 @@ def detect_objects(input_path, output_path=None, show_window=False, conf_thresho
         while True:
             if cv2.waitKey(0) & 0xFF == ord('q'):
                 break
+        # Remove the pop-up window
+        cv2.destroyAllWindows()
 
-    # Writes the image from the memory to a local file
-    cv2.imwrite(output_path, image)
 
-    # Remove the pop-up window
-    cv2.destroyAllWindows()
 
     # Lists of the detected classes
     output_classes = list()
@@ -141,7 +153,13 @@ def detect_objects(input_path, output_path=None, show_window=False, conf_thresho
         output_classes.append(classes[id])
 
     output_classes = set(output_classes)
-    return len(indices), output_classes, output_path
+
+    if output_path:
+        # Writes the image from the memory to a local file
+        cv2.imwrite(output_path, image)
+        return len(indices), list(output_classes), output_path
+    else:
+        return len(indices), list(output_classes), image
 
 
 def get_output_layers(net):
@@ -160,5 +178,3 @@ def draw_prediction(img, class_id, confidence, x, y, x_plus_w, y_plus_h, classes
     cv2.rectangle(img, (x, y), (x_plus_w, y_plus_h), color, 2)
 
     cv2.putText(img, f'{label} (' + '%.2g' % confidence + ')', (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-
-

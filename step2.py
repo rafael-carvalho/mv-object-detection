@@ -33,6 +33,7 @@ def load_config_variables():
     api_key = None
     network_id = None
     target_cameras = None
+    rtsp = None
 
     if API_KEY and NETWORK_ID:
         api_key = API_KEY
@@ -46,11 +47,14 @@ def load_config_variables():
         network_id = config.get('meraki', 'NETWORK_ID')
         if config.has_option('meraki', 'CAMERAS'):
             target_cameras = config.get('meraki', 'CAMERAS')
+        if config.has_option('meraki', 'RTSP'):
+            rtsp = config.get('meraki', 'RTSP')
 
     else:
         api_key = os.getenv('API_KEY')
         network_id = os.getenv('NETWORK_ID')
         target_cameras = os.getenv('CAMERAS')
+        rtsp = os.getenv('RTSP')
 
     if not api_key or not network_id:
         raise Exception('Meraki API Key and Meraki Network Id are mandatory params. You can hard code them above, '
@@ -60,7 +64,7 @@ def load_config_variables():
     if target_cameras:
         target_cameras = target_cameras.split(';')
 
-    return api_key, network_id, target_cameras
+    return api_key, network_id, target_cameras, rtsp
 
 
 def create_directories():

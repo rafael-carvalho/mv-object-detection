@@ -114,3 +114,5 @@ config.ini
 /output
 /snapshots
 /yolo-weights
+/yolo-weights/keras
+/keras-weigths

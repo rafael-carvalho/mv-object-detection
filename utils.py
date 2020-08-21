@@ -52,15 +52,18 @@ def load_config_variables():
 
     elif os.path.exists(CONFIG_FILE_PATH):
         config = configparser.ConfigParser()
-        config.read("config.ini")
-        api_key = config.get('meraki', 'API_KEY')
-        network_id = config.get('meraki', 'NETWORK_ID')
+        config.read(CONFIG_FILE_PATH)
+
+        if config.has_option('meraki', 'API_KEY'):
+            api_key = config.get('meraki', 'API_KEY')
+        if config.has_option('meraki', 'NETWORK_ID'):
+            network_id = config.get('meraki', 'NETWORK_ID')
+        if config.has_option('meraki', 'ORGANIZATION_ID'):
+            organization_id = config.get('meraki', 'ORGANIZATION_ID')
         if config.has_option('meraki', 'CAMERAS'):
             target_cameras = config.get('meraki', 'CAMERAS')
         if config.has_option('meraki', 'RTSP'):
             rtsp = config.get('meraki', 'RTSP')
-        if config.has_option('meraki', 'ORGANIZATION_ID'):
-            organization_id = config.get('meraki', 'ORGANIZATION_ID')
 
     else:
         api_key = os.getenv('API_KEY')
@@ -68,11 +71,6 @@ def load_config_variables():
         target_cameras = os.getenv('CAMERAS')
         rtsp = os.getenv('RTSP')
         organization_id = os.getenv('ORGANIZATION_ID')
-
-    if not api_key or not network_id:
-        raise Exception('Meraki API Key and Meraki Network Id are mandatory params. You can hard code them above, '
-                        'use a config.ini file or set them as environment variables. Camera serials should be a string '
-                        'separated by ;. Camera serials are optional')
 
     if target_cameras:
         target_cameras = target_cameras.split(';')

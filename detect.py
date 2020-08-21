@@ -11,6 +11,8 @@ import numpy as np
 import os
 import pathlib
 import utils
+from datetime import datetime
+import time
 
 ######### HYPERPARAMETERS
 NMS_THRESHOLD = 0.4
@@ -181,3 +183,91 @@ def draw_prediction(img, class_id, confidence, x, y, x_plus_w, y_plus_h, classes
     cv2.rectangle(img, (x, y), (x_plus_w, y_plus_h), color, 2)
 
     cv2.putText(img, f'{label} (' + '%.2g' % confidence + ')', (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+
+
+
+def add_text_annotation_to_video(frame, frame_counter, camera_info, contextual_annotations):
+    prepended_annotations = list()
+    prepended_annotations.append(f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
+    prepended_annotations.append(f'Current frame: {frame_counter}')
+    if camera_info:
+        prepended_annotations.append(f"{camera_info['serial']} - {camera_info['model']}")
+
+    annotations = prepended_annotations
+
+    padding = 15
+    for context in contextual_annotations:
+        if context:
+            annotations.append(context)
+
+    cv2.rectangle(frame, (0, 0), (400, (len(annotations) + 1) * padding), (0, 0, 0), -1)
+    counter = 1
+    for annotation in annotations:
+        if annotation:
+            x = padding
+            y = counter * padding
+            text_coordinates = (x, y)
+            cv2.putText(frame, annotation, text_coordinates, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+            counter += 1
+
+    return frame
+
+
+def process_rtsp_stream(link, show_window, camera_info=None, weights=None, fps_throttle=30, width=640, height=320):
+    print('Processing')
+    cap = cv2.VideoCapture(link)
+    if not weights:
+        weights = utils.YOLO_WEIGHTS
+
+    frame_counter = 0
+    error_counter = 0
+    error_threshold = 10
+    while True:
+        # Capture frame-by-frame
+        ret, frame = cap.read()
+        if frame is None:
+            error_counter += 1
+            print(f'Subsequent frames lost {error_counter}')
+            time.sleep(1)
+            if error_counter == error_threshold:
+                raise Exception(f'Stream not available. Please check {link}')
+
+        elif frame_counter % fps_throttle == 0:
+            if width and height:
+                width = int(width)
+                height = int(height)
+                frame = cv2.resize(frame, (width, height), interpolation=cv2.INTER_AREA)
+
+            error_counter = 0
+            detect = True
+            annotations = list()
+            if not detect:
+                print(f'Raw frame {frame_counter}')
+                frame_out = frame
+
+            else:
+                print(f'Detecting objects in frame {frame_counter}')
+                qnt_objects, output_classes, annotated_image = detect_objects(input_array=frame,
+                                                                              conf_threshold=0.6,
+                                                                              yolo_weights=f'{utils.YOLO_WEIGHTS_FOLDER}/{weights}'
+                                                                              )
+                annotations.append(f'Using {weights}')
+                annotations.append(f'{qnt_objects} objects detected')
+                annotations.append(f'{output_classes}')
+
+                frame_out = annotated_image
+                print(f'{qnt_objects} objects detected')
+
+                # encode OpenCV raw frame to jpg and displaying it
+            add_text_annotation_to_video(frame, frame_counter, camera_info, annotations)
+            if show_window:
+                cv2.imshow(link, frame_out)
+            else:
+                ret, jpeg = cv2.imencode('.jpg', frame_out)
+                yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n\r\n')
+            #cv2.imshow(link, frame_out)
+
+        frame_counter += 1
+
+    cap.release()

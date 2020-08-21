@@ -148,12 +148,12 @@ function request_classes(weights) {
                 classes = chunkArray(classes, column_len)
                 feedback = 'Class load success!'
 
-
+                $('#classes_container').show();
                 $('#classes').empty()
 
 
                 for (i = 0; i < classes.length; i++) {
-                    var ul = $('<ul class="col" />');
+                    var ul = $('<ul class="col" style="list-style: none;" />');
                     for (j = 0; j < classes[i].length; j++) {
                         ul.append('<li>' + classes[i][j] + '</li>')
                     }

@@ -6,6 +6,7 @@ from datetime import datetime
 from step2 import *
 import json
 import traceback
+import detect
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
@@ -37,65 +38,14 @@ def add_text_annotation_to_video(frame, frame_counter, camera_info, contextual_a
     return frame
 
 
-def process_rtsp_stream(link, camera_info=None, weights=None, fps_throttle=30, width=640, height=320):
-    cap = cv2.VideoCapture(link)
-    if not weights:
-        weights = 'yolo-weights/yolov3.weights'
 
-    frame_counter = 0
-    error_counter = 0
-    error_threshold = 10
-    while True:
-        # Capture frame-by-frame
-        ret, frame = cap.read()
-        if frame is None:
-            error_counter += 1
-            print(f'Subsequent frames lost {error_counter}')
-            time.sleep(1)
-            if error_counter == error_threshold:
-                raise Exception(f'Stream not available. Please check {link}')
-
-        elif frame_counter % fps_throttle == 0:
-            if width and height:
-                width = int(width)
-                height = int(height)
-                frame = cv2.resize(frame, (width, height), interpolation=cv2.INTER_AREA)
-
-            error_counter = 0
-            detect = True
-            annotations = list()
-            if not detect:
-                print(f'Raw frame {frame_counter}')
-                frame_out = frame
-
-            else:
-                print(f'Detecting objects in frame {frame_counter}')
-                qnt_objects, output_classes, annotated_image = detect_objects(input_array=frame,
-                                                                              conf_threshold=0.6,
-                                                                              yolo_weights=f'{utils.YOLO_WEIGHTS_FOLDER}/{weights}'
-                                                                              )
-                annotations.append(f'Using {weights}')
-                annotations.append(f'{qnt_objects} objects detected')
-                annotations.append(f'{output_classes}')
-
-                frame_out = annotated_image
-                print(f'{qnt_objects} objects detected')
-
-                # encode OpenCV raw frame to jpg and displaying it
-            add_text_annotation_to_video(frame, frame_counter, camera_info, annotations)
-            ret, jpeg = cv2.imencode('.jpg', frame_out)
-
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n\r\n')
-            #cv2.imshow(link, frame_out)
-
-        frame_counter += 1
-
-    cap.release()
 
 
 @app.route('/form', methods=['POST'])
 def process_form():
+    '''
+    Processes each step of the form.
+    '''
     output = None
     status_code = 500
     try:
@@ -217,19 +167,25 @@ def process_form():
 
 @app.route('/video_feed/weights/<weights>/link/<path:link>/')
 def video_feed(link, weights):
-    return Response(process_rtsp_stream(link=link, weights=weights),
+    '''
+    Yields the RTSP stream with annotations.
+    '''
+    return Response(detect.process_rtsp_stream(link=link, weights=weights, show_window=False),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 @app.route('/classes/<weights>')
 def get_classes(weights):
+    '''
+    Returns the list of classes that are assigned to the weights. For every .weights there must be a .txt with the same name for this to work.
+    '''
     status_code = 500
     output = {}
 
     try:
         classes = utils.get_classes_for_weights(weights)
         output = {
-            'classes': classes
+            'classes': sorted(classes)
         }
         print(classes)
         status_code = 200

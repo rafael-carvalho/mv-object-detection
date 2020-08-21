@@ -22,25 +22,25 @@
     <main role="main" class="container">
       <div class="starter-template">
         <h1>Meraki MV With Enhanced Object Detection</h1>
-          <div id="stream_parent" style="display: none; width:100%; background-image: url('static/img/loading.gif'); background-repeat: no-repeat; background-position: center;">
-            <div id="stream_info" class="container">
-              <p class="row"><span id="rtsp_link"></span></p>
-              <p class="row">Model: <span id="model_name"></span></p>
-          </div>
-              <br />
-
-              <img id="stream" src="" class="container" />
-
-          </div>
-          <div id="classes_container">
-              <h3>Available Classes</h3>
-              <div id="classes" class="row">
+          <div id="top_wrapper" class="border rounded" style="padding:20px">
+              <div id="stream_parent" style="display: none; width:100%; background-image: url('static/img/loading.gif'); background-repeat: no-repeat; background-position: center;">
+                <div id="stream_info" class="container">
+                  <p class="row"><span id="rtsp_link"></span></p>
+                  <p class="row">Model: <span id="model_name"></span></p>
+              </div>
+                  <br />
+                  <img id="stream" src="" class="container" />
+              </div>
+              <div id="classes_container" style="display:none;">
+                  <h3>Available Classes</h3>
+                  <div id="classes" class="row">
+                  </div>
               </div>
           </div>
-        <form id="form" action="{{url_for('process_form')}}">
+        <form id="form" action="{{url_for('process_form')}}" class="border rounded" style="padding:20px" >
           <div class="form-group">
             <label for="api_key">API Key</label>
-            <input type="password" class="form-control" name="api_key" id="api_key" aria-describedby="api_key" placeholder="Enter your Meraki API Key" required value="{{api_key}}" class="triggers" data-sequence="0">
+            <input type="password" minlength="40" maxlength="40" class="form-control" name="api_key" id="api_key" aria-describedby="api_key" placeholder="Enter your Meraki API Key" required value="{{api_key}}" class="triggers" data-sequence="0">
             <small id="api_key_help" class="form-text text-muted">This program does not store API keys</small>
           </div>
           <div class="form-group" >
@@ -82,7 +82,7 @@
           </div>
         <div class="form-group" >
         <label for="model">Model</label>
-            <select id="model" name="model" class="triggers" data-sequence="3" required>
+            <select id="model" name="model" class="" data-sequence="3" required>
                 {% for w in weights %}
                     <option value="{{w|replace('yolo-weights/', '')}}" selected>{{w|replace("yolo-weights/", "")}}</option>
                 {% endfor %}
@@ -90,7 +90,7 @@
         </select>
       </div>
           <button type="submit" class="btn btn-secondary" id="btn">Go!</button>
-
+        <small id="" class="form-text text-muted">Make sure you press the button every time you change a field</small>
           <img id="loading" src="static/img/loading.gif" style="display: none;"/>
         </form>
     </main><!-- /.container -->

@@ -126,19 +126,28 @@ def get_cameras(dashboard, network_id, target_cameras=None):
     return cameras
 
 
+
 def check_existing_weights():
+    '''
+       Checks to see if the weights file has its respective classes file and the respective cfg file.
+    '''
     weights = [f for f in glob.glob(f"{YOLO_WEIGHTS_FOLDER}/*.weights")]
-    cfgs = [f for f in glob.glob(f"{YOLO_CFG_FOLDER}/*.cfg")]
-    cfgs_names = [f.split('/')[-1].replace('.cfg', '') for f in cfgs]
+    cfgs_names = [f.split('/')[-1].replace('.cfg', '') for f in glob.glob(f"{YOLO_CFG_FOLDER}/*.cfg")]
+    classes_names = [f.split('/')[-1].replace('.txt', '') for f in glob.glob(f"{YOLO_CLASSES_FOLDER}/*.txt")]
+
     valid_weights = []
     for w in weights:
-        if w.split('/')[-1].replace('.weights', '') in cfgs_names:
+        name = w.split('/')[-1].replace('.weights', '')
+        if name in cfgs_names and name in classes_names:
             valid_weights.append(w)
 
     return valid_weights
 
 
 def get_classes_for_weights(weights):
+    '''
+        Returns the list of classes that are assigned to the weights. For every .weights there must be a .txt with the same name for this to work.
+    '''
     name = weights.split('/')[-1].replace('.weights', '')
     classes_filename = f'{YOLO_CLASSES_FOLDER}/{name}.txt'
     output = []

@@ -20,6 +20,11 @@ if __name__ == '__main__':
     """
     utils.create_directories()
     api_key, organization_id, network_id, target_cameras, rtsp = utils.load_config_variables()
+    if not api_key or not network_id:
+        raise Exception('Meraki API Key and Meraki Network Id are mandatory params. You can hard code them above, '
+                        'use a config.ini file or set them as environment variables. Camera serials should be a string '
+                        'separated by ;. Camera serials are optional')
+
     dashboard = utils.establish_meraki_connection(api_key)
     cams = utils.get_cameras(dashboard, network_id, target_cameras)
     print(f'Will process snapshots of {len(cams)} MV cameras')

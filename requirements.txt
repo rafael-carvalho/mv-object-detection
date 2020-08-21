@@ -1,11 +1,8 @@
+Flask==1.1.2
 googledrivedownloader==0.4
-imageio-ffmpeg
-Keras==2.3.1
-opencv-python==4.2.0.34
-meraki==1.0.0b8
+meraki==1.0.0
 numpy==1.18.4
+opencv-python==4.2.0.34
 pathlib==1.0.1
 requests==2.23.0
-tensorflow==2.2.0
 tqdm==4.46.0
-wtforms

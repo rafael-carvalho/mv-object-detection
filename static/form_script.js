@@ -59,6 +59,7 @@ $( document ).ready(function() {
             contentType: "application/json",
             beforeSend: function() {
                 console.log('[START]')
+
                 console.log(formData)
                 $('#btn').prop('disabled', true);
                 $('#loading').show();
@@ -87,7 +88,9 @@ $( document ).ready(function() {
                     //$('#btn').text(data.next)
                 } else {
                     console.log(data.rtsp_link)
-                    startStream(data.rtsp_link);
+                    var weights = $('#model').val()
+                    startStream(data.rtsp_link, weights);
+                    request_classes(weights)
                 }
 
                 btn_options = ['btn-secondary', 'btn-primary', 'btn-warning', 'btn-success', 'btn-info', ]
@@ -115,6 +118,78 @@ $( document ).ready(function() {
     //$('#btn').click();
 });
 
-function startStream(rtsp_link) {
-    $('#stream').attr('src', encodeURI('/video_feed/' + rtsp_link))
+function startStream(rtsp_link, weights) {
+    $('#stream_parent').show();
+    $('#rtsp_link').text(rtsp_link);
+    $('#model_name').text(weights)
+    url = '/video_feed' + '/weights/' + weights + '/link/' + rtsp_link
+    $('#stream').attr('src', encodeURI(url))
+    console.log(url)
+}
+
+function request_classes(weights) {
+    url = '/classes/' + weights
+    url = encodeURI(url)
+    $.ajax({
+            type: 'GET',
+            url: url,
+            dataType : "json",
+            data: null,
+            contentType: "application/json",
+            beforeSend: function() {
+                console.log('[START]')
+                console.log(url)
+
+            },
+            success: function(data) {
+                console.log(data)
+                classes = data.classes
+                column_len = 10
+                classes = chunkArray(classes, column_len)
+                feedback = 'Class load success!'
+
+
+                $('#classes').empty()
+
+
+                for (i = 0; i < classes.length; i++) {
+                    var ul = $('<ul class="col" />');
+                    for (j = 0; j < classes[i].length; j++) {
+                        ul.append('<li>' + classes[i][j] + '</li>')
+                    }
+                    $('#classes').append(ul)
+
+                }
+                console.log(data.classes)
+            },
+            error: function(xhr) {
+                feedback = 'Something wrong happened'
+            },
+            complete: function() {
+                $('#btn').prop('disabled', false);
+                $('#loading').hide();
+                console.log(feedback)
+            }
+    });
+
+}
+
+/**
+ * Returns an array with arrays of the given size.
+ *
+ * @param myArray {Array} array to split
+ * @param chunk_size {Integer} Size of every group
+ */
+function chunkArray(myArray, chunk_size){
+    var index = 0;
+    var arrayLength = myArray.length;
+    var tempArray = [];
+
+    for (index = 0; index < arrayLength; index += chunk_size) {
+        myChunk = myArray.slice(index, index+chunk_size);
+        // Do something if you want with the group
+        tempArray.push(myChunk);
+    }
+
+    return tempArray;
 }

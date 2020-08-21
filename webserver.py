@@ -5,10 +5,9 @@ import time
 from datetime import datetime
 from step2 import *
 import json
-import requests
+import traceback
 
-app = Flask(__name__, template_folder='templates',
-                    static_folder='static')
+app = Flask(__name__, template_folder='templates', static_folder='static')
 
 
 def add_text_annotation_to_video(frame, frame_counter, camera_info, contextual_annotations):
@@ -38,8 +37,11 @@ def add_text_annotation_to_video(frame, frame_counter, camera_info, contextual_a
     return frame
 
 
-def process_rtsp_stream(link, camera_info=None, fps_throttle=30, width=640, height=320):
+def process_rtsp_stream(link, camera_info=None, weights=None, fps_throttle=30, width=640, height=320):
     cap = cv2.VideoCapture(link)
+    if not weights:
+        weights = 'yolo-weights/yolov3.weights'
+
     frame_counter = 0
     error_counter = 0
     error_threshold = 10
@@ -70,9 +72,9 @@ def process_rtsp_stream(link, camera_info=None, fps_throttle=30, width=640, heig
                 print(f'Detecting objects in frame {frame_counter}')
                 qnt_objects, output_classes, annotated_image = detect_objects(input_array=frame,
                                                                               conf_threshold=0.6,
-                                                                              #yolo_weights='yolo-weights/yolov3-tiny.weights',
-                                                                              #yolo_cfg='yolo-cfg/yolov3-tiny.cfg',
+                                                                              yolo_weights=f'{utils.YOLO_WEIGHTS_FOLDER}/{weights}'
                                                                               )
+                annotations.append(f'Using {weights}')
                 annotations.append(f'{qnt_objects} objects detected')
                 annotations.append(f'{output_classes}')
 
@@ -90,11 +92,6 @@ def process_rtsp_stream(link, camera_info=None, fps_throttle=30, width=640, heig
         frame_counter += 1
 
     cap.release()
-
-
-
-
-
 
 
 @app.route('/form', methods=['POST'])
@@ -120,7 +117,7 @@ def process_form():
             camera_serial_number = None
 
         if api_key and not organization_id:
-            dashboard = establish_meraki_connection(api_key)
+            dashboard = utils.establish_meraki_connection(api_key)
             data = dashboard.organizations.getOrganizations()
 
             options = list()
@@ -139,7 +136,7 @@ def process_form():
             }
             status_code = 200
         elif api_key and organization_id and not network_id:
-            dashboard = establish_meraki_connection(api_key)
+            dashboard = utils.establish_meraki_connection(api_key)
             data = dashboard.organizations.getOrganizationNetworks(organizationId=organization_id)
             options = list()
             for net in data:
@@ -156,7 +153,7 @@ def process_form():
             }
             status_code = 200
         elif api_key and organization_id and network_id and not camera_serial_number:
-            dashboard = establish_meraki_connection(api_key)
+            dashboard = utils.establish_meraki_connection(api_key)
             devices = dashboard.networks.getNetworkDevices(network_id)
             cameras = [x for x in devices if x['model'].startswith('MV')]
             print(cameras)
@@ -184,7 +181,7 @@ def process_form():
             status_code = 200
 
         elif api_key and organization_id and network_id and camera_serial_number:
-            dashboard = establish_meraki_connection(api_key)
+            dashboard = utils.establish_meraki_connection(api_key)
 
             rtsp_info = dashboard.camera.getDeviceCameraVideoSettings(camera_serial_number)
 
@@ -218,46 +215,44 @@ def process_form():
         return make_response(json.dumps(output), status_code)
 
 
-
-@app.route('/video_feed/<path:link>')
-def video_feed(link):
-    return Response(process_rtsp_stream(link=link),
+@app.route('/video_feed/weights/<weights>/link/<path:link>/')
+def video_feed(link, weights):
+    return Response(process_rtsp_stream(link=link, weights=weights),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
-@app.route('/supermarket/<path:link>')
-def supermarket_feed(link):
-    return Response(process_rtsp_stream_with_file_annotation(link=link),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
+@app.route('/classes/<weights>')
+def get_classes(weights):
+    status_code = 500
+    output = {}
 
-
-
-from datetime import datetime
-from flask import send_file
-import random
-import os
-from os import path
-
-
-@app.route('/file')
-def hello_world(request=None):
     try:
-        root = path.dirname(path.abspath(__file__))
-        filename ="/tmp/output.txt"
-        with open(filename, "w+") as f:
-            f.write(f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\r\n')
-            ran = random.randint(0, 1000)
-            for i in range(ran, ran + 10):
-                f.write("This is line %d\r\n" % (i+1))
-            f.close()
-            return send_file(filename, attachment_filename='output.txt')
-    except Exception as e:
-        return str(e)
+        classes = utils.get_classes_for_weights(weights)
+        output = {
+            'classes': classes
+        }
+        print(classes)
+        status_code = 200
+    except:
+        output = {
+            'error_message': 'Something wrong happened',
+            'error_traceback': traceback.format_exc(),
+        }
+        traceback.print_exc()
+    finally:
+        return make_response(json.dumps(output), status_code)
 
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    print(utils.load_config_variables())
+    api_key, organization_id, network_id, target_cameras, rtsp = utils.load_config_variables()
+    weights = utils.check_existing_weights()
+    print(weights)
+    if not weights:
+        utils.download_weights()
+
+    return render_template('index.html', api_key=api_key, organization_id=organization_id, network_id=network_id, target_cameras=target_cameras, rtsp=rtsp, weights=weights)
 
 
 if __name__ == '__main__':

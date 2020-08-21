@@ -131,8 +131,8 @@ def process_rtsp_stream(link, camera_info=None, fps_throttle=10):
 
 
 if __name__ == '__main__':
-    api_key, network_id, target_cameras, rtsp_serial = load_config_variables()
-    dashboard = establish_meraki_connection(api_key)
+    api_key, organization_id, network_id, target_cameras, rtsp_serial = utils.load_config_variables()
+    dashboard = utils.establish_meraki_connection(api_key)
     camera_info = None
     camera_info = dashboard.devices.getDevice(rtsp_serial)
     #cams = get_cameras(dashboard, network_id, target_cameras)

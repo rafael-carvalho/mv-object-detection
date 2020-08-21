@@ -39,6 +39,6 @@ def save_response_content(response, destination):
                 f.write(chunk)
 
 
-def download_weights(filename, hosted_file=HOSTED_FILE):
+def download_yolov3_weights(filename, hosted_file=HOSTED_FILE):
     download_file_from_google_drive(HOSTED_FILE, filename)
     return True

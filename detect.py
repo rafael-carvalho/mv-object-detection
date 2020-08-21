@@ -10,20 +10,7 @@ import cv2
 import numpy as np
 import os
 import pathlib
-from download_weights import download_weights
-import imageio_ffmpeg as imageio
-
-
-######### FOLDER STRUCTURE
-YOLO_CFG_FOLDER = 'yolo-cfg'
-YOLO_CLASSES_FOLDER = 'yolo-classes'
-YOLO_WEIGHTS_FOLDER = 'yolo-weights'
-
-######## YOLO CONFIGS
-YOLO_CONFIG = f'{YOLO_CFG_FOLDER}/yolov3.cfg'
-YOLO_CLASSES = f'{YOLO_CLASSES_FOLDER}/yolov3.txt'
-YOLO_WEIGHTS = f'{YOLO_WEIGHTS_FOLDER}/yolov3.weights'
-
+import utils
 
 ######### HYPERPARAMETERS
 NMS_THRESHOLD = 0.4
@@ -33,7 +20,7 @@ global COLORS
 COLORS = None
 
 
-def detect_objects(input_path=None, output_path=None, show_window=False, input_array=None, conf_threshold=CONF_THRESHOLD, nms_threshold=NMS_THRESHOLD, yolo_weights=YOLO_WEIGHTS, yolo_cfg=YOLO_CONFIG, yolo_classes=YOLO_CLASSES):
+def detect_objects(input_path=None, output_path=None, show_window=False, input_array=None, conf_threshold=CONF_THRESHOLD, nms_threshold=NMS_THRESHOLD, yolo_weights=None, yolo_cfg=None, yolo_classes=None):
     """
     Takes a locally stored image as the input and runs the model to detect objects within a specific class set.
 
@@ -59,11 +46,27 @@ def detect_objects(input_path=None, output_path=None, show_window=False, input_a
         output_path = f'{root}/output/{file_name}'
 
     # Downloads the weights file (pre-trained) model if it does not exist already
+
+    if not yolo_weights:
+        yolo_weights = utils.YOLO_WEIGHTS
+
+    if not yolo_cfg:
+        yolo_cfg = utils.YOLO_CONFIG
+
+    if not yolo_classes:
+        yolo_classes = utils.YOLO_CLASSES
+
     if not os.path.exists(yolo_weights):
-        print(f'Weights file not found. Will download into {yolo_weights}')
-        path = pathlib.Path(yolo_weights)
+        print(f'Weights file not found. Will download into {utils.YOLO_WEIGHTS}')
+        path = pathlib.Path(utils.YOLO_WEIGHTS)
         path.parent.mkdir(parents=True, exist_ok=True)
-        download_weights(filename=yolo_weights)
+        utils.download_weights(filename='yolov3.weights')
+
+    if not os.path.exists(yolo_cfg):
+        raise Exception('Yolo Config file could not be found')
+
+    if not os.path.exists(yolo_classes):
+        raise Exception('Yolo classes file could not be found')
 
     if input_path:
         # Reads the image file into an OpenCV matrix
@@ -77,7 +80,7 @@ def detect_objects(input_path=None, output_path=None, show_window=False, input_a
     Height = image.shape[0]
     scale = 0.00392
 
-    print(f"{Width} x {Height}")
+    #print(f"{Width} x {Height}")
 
     # Reads the text file with a list of all the categories of objects that have been trained on the model.
     classes = None

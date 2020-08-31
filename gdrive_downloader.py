@@ -2,8 +2,16 @@
 from tqdm import tqdm
 import requests
 
-HOSTED_FILE = '1pkjwtV-kRoQLpgzaBurriwwcwd0t9Q5x'
-
+HOSTED_FILES = [
+    {
+        'filename': 'yolo-weights/yolov3-coco.weights',
+        'file_id': '1pkjwtV-kRoQLpgzaBurriwwcwd0t9Q5x'
+    },
+    {
+        'filename': 'yolo-weights/yolov3-mask.weights',
+        'file_id': '1stbsUnWeZaqSQjGfcwQp0kQ0njcBqRUj'
+    },
+]
 
 def download_file_from_google_drive(id, destination):
     url = "https://docs.google.com/uc?export=download"
@@ -39,6 +47,7 @@ def save_response_content(response, destination):
                 f.write(chunk)
 
 
-def download_yolov3_weights(filename, hosted_file=HOSTED_FILE):
-    download_file_from_google_drive(HOSTED_FILE, filename)
+def download_yolov3_weights():
+    for file_dict in HOSTED_FILES:
+        download_file_from_google_drive(file_dict['file_id'], file_dict['filename'])
     return True

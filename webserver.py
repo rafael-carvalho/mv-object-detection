@@ -213,4 +213,5 @@ def index():
 
 if __name__ == '__main__':
     # defining server ip address and port
+    print('Running webserver')
     app.run(host='0.0.0.0',port='5000', debug=True)

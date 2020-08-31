@@ -13,9 +13,9 @@ YOLO_CLASSES_FOLDER = 'yolo-classes'
 YOLO_WEIGHTS_FOLDER = 'yolo-weights'
 
 ######## YOLO CONFIGS
-YOLO_CONFIG = f'{YOLO_CFG_FOLDER}/yolov3.cfg'
-YOLO_CLASSES = f'{YOLO_CLASSES_FOLDER}/yolov3.txt'
-YOLO_WEIGHTS = f'{YOLO_WEIGHTS_FOLDER}/yolov3.weights'
+YOLO_CONFIG = f'{YOLO_CFG_FOLDER}/yolov3-coco.cfg'
+YOLO_CLASSES = f'{YOLO_CLASSES_FOLDER}/yolov3-coco.txt'
+YOLO_WEIGHTS = f'{YOLO_WEIGHTS_FOLDER}/yolov3-coco.weights'
 
 #### PROJECT FOLDERS
 FOLDER_SNAPSHOTS = 'snapshots'
@@ -74,7 +74,6 @@ def load_config_variables():
 
     if target_cameras:
         target_cameras = target_cameras.split(';')
-
 
     return api_key, organization_id, network_id, target_cameras, rtsp
 
@@ -155,10 +154,8 @@ def get_classes_for_weights(weights):
     return output
 
 
-def download_weights(filename=None):
-    if not filename:
-        filename = YOLO_WEIGHTS
-    return gdrive_downloader.download_yolov3_weights(filename)
+def download_weights():
+    return gdrive_downloader.download_yolov3_weights()
 
 def download_file(file_name, file_url):
     """

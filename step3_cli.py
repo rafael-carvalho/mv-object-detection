@@ -63,7 +63,7 @@ def process_rtsp_stream(link, camera_info=None, fps_throttle=10):
         ret, frame = cap.read()
         if frame is None:
             error_counter += 1
-            print(f'Subsequent frames lost {error_counter}')
+            print(f'Consecutive frames lost {error_counter}')
             time.sleep(1)
             if error_counter == error_threshold:
                 raise Exception(f'Stream not available. Please check {link}')
@@ -80,8 +80,7 @@ def process_rtsp_stream(link, camera_info=None, fps_throttle=10):
                 print(f'Detecting objects in frame {frame_counter}')
                 qnt_objects, output_classes, annotated_image = detect_objects(input_array=frame,
                                                                               conf_threshold=0.6,
-                                                                              #yolo_weights='yolo-weights/yolov3-tiny.weights',
-                                                                              #yolo_cfg='yolo-cfg/yolov3-tiny.cfg',
+                                                                              yolo_weights='yolo-weights/yolov3-mask.weights',
                                                                               )
                 annotations.append(f'{qnt_objects} objects detected')
                 annotations.append(f'{output_classes}')
@@ -101,33 +100,6 @@ def process_rtsp_stream(link, camera_info=None, fps_throttle=10):
     # When everything done, release the capture
     cap.release()
     cv2.destroyAllWindows()
-
-    '''
-    while True:
-        #if frame_limit > 0 and frame_counter > frame_start + frame_limit:
-        #    writer.close()
-        #    break
-        if frame_counter % fps_throttle == 0:
-            ret, frame = cap.read()
-            if ret and frame_counter >= frame_start:
-                print('Detecting objects in frame ' + str(frame_counter))
-                qnt_objects, output_classes, annotated_image = detect_objects(input_array=frame, show_window=False)
-                print(f'{qnt_objects} objects detected')
-                cv2.imshow('stream', annotated_image)
-                if cv2.waitKey(1) == ord('q'):  # q to quit
-                    raise StopIteration
-
-                #cv2.imshow(annotated_image)
-                #print(qnt_objects)
-                #print(output_classes)
-                #if frame_limit > 0:
-                #    writer.send(annotated_image)
-            else:
-                print('Skipping frame ' + str(frame_counter))
-        else:
-            print('FPS throttling. Skipping frame ' + str(frame_counter))
-        frame_counter += 1
-    '''
 
 
 if __name__ == '__main__':
@@ -156,4 +128,4 @@ if __name__ == '__main__':
                 raise Exception(f'Error while enabling RTSP on camera {rtsp_serial}')
 
     print(f'Establishing direct stream to {rtsp_link}')
-    process_rtsp_stream(rtsp_link, camera_info)
+    process_rtsp_stream(rtsp_link, camera_info, )

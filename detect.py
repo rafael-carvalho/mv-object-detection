@@ -22,7 +22,7 @@ global COLORS
 COLORS = None
 
 
-def detect_objects(input_path=None, output_path=None, show_window=False, input_array=None, conf_threshold=CONF_THRESHOLD, nms_threshold=NMS_THRESHOLD, yolo_weights=None, yolo_cfg=None, yolo_classes=None):
+def detect_objects(input_path=None, output_path=None, show_window=False, input_array=None, conf_threshold=CONF_THRESHOLD, nms_threshold=NMS_THRESHOLD, yolo_weights=None):
     """
     Takes a locally stored image as the input and runs the model to detect objects within a specific class set.
 
@@ -48,24 +48,23 @@ def detect_objects(input_path=None, output_path=None, show_window=False, input_a
         output_path = f'{root}/output/{file_name}'
 
     # Downloads the weights file (pre-trained) model if it does not exist already
-
     if not yolo_weights:
         yolo_weights = utils.YOLO_WEIGHTS
-
-    if not yolo_cfg:
-        yolo_cfg = utils.YOLO_CONFIG
-
-    if not yolo_classes:
-        yolo_classes = utils.YOLO_CLASSES
 
     if not os.path.exists(yolo_weights):
         print(f'Weights file not found. Will download into {utils.YOLO_WEIGHTS}')
         path = pathlib.Path(utils.YOLO_WEIGHTS)
         path.parent.mkdir(parents=True, exist_ok=True)
-        utils.download_weights(filename='yolov3.weights')
+        utils.download_weights()
 
+    weights_name = yolo_weights.split('/')[-1].split('.weights')[0]
+    yolo_cfg = f'{utils.YOLO_CFG_FOLDER}/{weights_name}.cfg'
+    yolo_classes = f'{utils.YOLO_CLASSES_FOLDER}/{weights_name}.txt'
+
+    print(yolo_cfg)
+    print(yolo_classes)
     if not os.path.exists(yolo_cfg):
-        raise Exception('Yolo Config file could not be found')
+        raise Exception('Yolo config file could not be found')
 
     if not os.path.exists(yolo_classes):
         raise Exception('Yolo classes file could not be found')
@@ -200,7 +199,8 @@ def add_text_annotation_to_video(frame, frame_counter, camera_info, contextual_a
         if context:
             annotations.append(context)
 
-    cv2.rectangle(frame, (0, 0), (400, (len(annotations) + 1) * padding), (0, 0, 0), -1)
+    cv2.rectangle(frame, (0, 0), (250, (len(annotations) + 1) * padding), (0, 0, 0), -1)
+
     counter = 1
     for annotation in annotations:
         if annotation:
@@ -214,10 +214,11 @@ def add_text_annotation_to_video(frame, frame_counter, camera_info, contextual_a
 
 
 def process_rtsp_stream(link, show_window, camera_info=None, weights=None, fps_throttle=30, width=640, height=320):
-    print('Processing')
-    cap = cv2.VideoCapture(link)
     if not weights:
         weights = utils.YOLO_WEIGHTS
+
+    print(f'Establishing connection to {link}')
+    cap = cv2.VideoCapture(link)
 
     frame_counter = 0
     error_counter = 0

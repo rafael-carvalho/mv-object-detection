@@ -4,6 +4,16 @@
 # Code: https://github.com/rafael-carvalho/mv-object-detection #
 ################################################################
 
+'''
+This class taps into the RTSP stream of an MV camera and detects objects seen by the camera. This is is an alternative
+version to the webserver class. This has proven to have better performance on updating the screen, even when you
+keep higher image dimensions. We believe this is due to the fact that you remove the web client <-> web server
+communication overhead.
+
+You don't need to use this file for the Adventures Lab
+'''
+
+
 from datetime import datetime
 import cv2
 import time
@@ -18,10 +28,12 @@ API_KEY = None
 NETWORK_ID = None
 TARGET_CAMERAS = None
 
-CONFIG_FILE_PATH = 'config.ini'
-
 
 def add_text_annotation_to_video(frame, frame_counter, camera_info, contextual_annotations):
+    '''
+    Quick way to add text to an image. We paint a rectangle and overlay some text in white over it.
+
+    '''
     prepended_annotations = list()
     prepended_annotations.append(f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
     prepended_annotations.append(f'Current frame: {frame_counter}')
@@ -48,8 +60,11 @@ def add_text_annotation_to_video(frame, frame_counter, camera_info, contextual_a
     return frame
 
 
-def process_rtsp_stream(link, camera_info=None, fps_throttle=10):
-    cap = cv2.VideoCapture(link)
+def process_rtsp_stream(rtsp_link, yolo_weights, conf_threshold=0.6, fps_throttle=10, camera_info=None):
+    '''
+    Infinite loop that captures the RTSP stream of the camera and detects objects based on teh
+    '''
+    cap = cv2.VideoCapture(rtsp_link)
     frame_counter = 0
     error_counter = 0
     error_threshold = 10
@@ -61,7 +76,7 @@ def process_rtsp_stream(link, camera_info=None, fps_throttle=10):
             print(f'Consecutive frames lost {error_counter}')
             time.sleep(1)
             if error_counter == error_threshold:
-                raise Exception(f'Stream not available. Please check {link}')
+                raise Exception(f'Stream not available. Please check {rtsp_link}')
 
         elif frame_counter % fps_throttle == 0:
             error_counter = 0
@@ -74,8 +89,8 @@ def process_rtsp_stream(link, camera_info=None, fps_throttle=10):
             else:
                 print(f'Detecting objects in frame {frame_counter}')
                 qnt_objects, output_classes, annotated_image = detect_objects(input_array=frame,
-                                                                              conf_threshold=0.6,
-                                                                              yolo_weights='yolo-weights/yolov3-mask.weights',
+                                                                              conf_threshold=conf_threshold,
+                                                                              yolo_weights=yolo_weights,
                                                                               )
                 annotations.append(f'{qnt_objects} objects detected')
                 annotations.append(f'{output_classes}')
@@ -85,7 +100,7 @@ def process_rtsp_stream(link, camera_info=None, fps_throttle=10):
 
             add_text_annotation_to_video(frame_out, frame_counter, camera_info, annotations)
 
-            cv2.imshow(link, frame_out)
+            cv2.imshow(rtsp_link, frame_out)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -98,15 +113,32 @@ def process_rtsp_stream(link, camera_info=None, fps_throttle=10):
 
 
 if __name__ == '__main__':
+    '''
+    This is an optional why of interacting with your MV RTSP stream. The webserver version is more feature rich and 
+    more user friendly. This is a more hands-on option where you can hard code more data.
+    
+    '''
+
+    '''
+    If you have set up environment variables (see utils.py), we'll load it from there.
+    '''
+    camera_info = None
+    rtsp_link = None
+
     api_key, organization_id, network_id, target_cameras, rtsp_serial = utils.load_config_variables()
     dashboard = utils.establish_meraki_connection(api_key)
-    camera_info = None
+
     camera_info = dashboard.devices.getDevice(rtsp_serial)
     #cams = get_cameras(dashboard, network_id, target_cameras)
     print(f'Will work with camera {rtsp_serial}')
 
-    #rtsp_link = "rtsp://192.168.100.6:9000/live"
-    rtsp_link = None
+    '''
+    You can also opt to hard-code the RTSP address, which can be found on your Meraki Dashboard.
+    Just uncomment the line below and change the value of the string.
+    More info: https://documentation.meraki.com/MV/Advanced_Configuration/External_RTSP
+    '''
+
+    # rtsp_link = "rtsp://192.168.100.6:9000/live"
     if not rtsp_link:
         print(f'Checking RTSP Status')
         response = dashboard.camera.getDeviceCameraVideoSettings(rtsp_serial)
@@ -122,5 +154,21 @@ if __name__ == '__main__':
             else:
                 raise Exception(f'Error while enabling RTSP on camera {rtsp_serial}')
 
+    '''
+    Setup the variables used for the object annotation. 
+    Yolo Weights: path to where you keep the weights.
+    conf_threshold: 
+    '''
+    yolo_weights = 'yolo-weights/yolov3-mask.weights'
+    conf_threshold = 0.3
+    fps_throttle = 10
+
     print(f'Establishing direct stream to {rtsp_link}')
-    process_rtsp_stream(rtsp_link, camera_info, )
+    print(f'Using {yolo_weights}')
+    print(f'Confidence Threshold: {conf_threshold}')
+    print(f'FPS Throttle: {fps_throttle}')
+
+    '''
+    It will start an infinite loop. Press q on your keyboard if you want to quit
+    '''
+    process_rtsp_stream(rtsp_link, yolo_weights, conf_threshold, fps_throttle, camera_info)

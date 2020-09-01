@@ -121,10 +121,11 @@ $( document ).ready(function() {
 });
 
 function startStream(rtsp_link, weights, confidence_threshold) {
+    $('#stream').attr('src', "")
     $('#stream_parent').show();
     $('#rtsp_link').text(rtsp_link);
     $('#model_name').text(weights)
-    $('#confidence_threshold_name').text(confidence_threshold)
+    $('#confidence_threshold_name').text(confidence_threshold + '%')
     url = '/video_feed' + '/weights/' + weights + '/confidence/' + (parseInt(confidence_threshold) / 100) + '/link/' + rtsp_link
     console.log(url)
     $('#stream').attr('src', encodeURI(url))

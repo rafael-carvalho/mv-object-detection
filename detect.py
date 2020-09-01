@@ -210,13 +210,16 @@ def add_text_annotation_to_video(frame, frame_counter, camera_info, contextual_a
     return frame
 
 
-def process_rtsp_stream(link, show_window, camera_info=None, weights=None, conf_threshold=0.6, fps_throttle=30, width=640, height=320):
+def process_rtsp_stream(link, show_window, camera_info=None, weights=None, conf_threshold=0.6, fps_throttle=30, width=960, height=480):
     if not weights:
         weights = utils.YOLO_WEIGHTS
 
-    print(f'Establishing connection to {link}')
-    cap = cv2.VideoCapture(link)
+    print(f'Establishing direct stream to {link}')
+    print(f'Using {weights}')
+    print(f'Confidence Threshold: {conf_threshold}')
+    print(f'FPS Throttle: {fps_throttle}')
 
+    cap = cv2.VideoCapture(link)
     frame_counter = 0
     error_counter = 0
     error_threshold = 10

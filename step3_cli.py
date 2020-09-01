@@ -7,13 +7,8 @@
 from datetime import datetime
 import cv2
 import time
-import configparser
-import requests
-import meraki
-import os
-import pathlib
-import traceback
-from step2 import *
+import utils
+from detect import detect_objects
 
 FOLDER_SNAPSHOTS = 'snapshots'
 FOLDER_OUTPUT = 'output'

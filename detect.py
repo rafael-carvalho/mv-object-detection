@@ -61,8 +61,6 @@ def detect_objects(input_path=None, output_path=None, show_window=False, input_a
     yolo_cfg = f'{utils.YOLO_CFG_FOLDER}/{weights_name}.cfg'
     yolo_classes = f'{utils.YOLO_CLASSES_FOLDER}/{weights_name}.txt'
 
-    print(yolo_cfg)
-    print(yolo_classes)
     if not os.path.exists(yolo_cfg):
         raise Exception('Yolo config file could not be found')
 

@@ -2,16 +2,22 @@
 from tqdm import tqdm
 import requests
 
+'''
+These are the Google Drive ID's for 
+'''
 HOSTED_FILES = [
     {
+        'description': 'Coco Weights for YoloV3',
         'filename': 'yolo-weights/yolov3-coco.weights',
         'file_id': '1pkjwtV-kRoQLpgzaBurriwwcwd0t9Q5x'
     },
     {
+        'description': 'YoloV3 trained to detect mask / no-mask trained by Francisco',
         'filename': 'yolo-weights/yolov3-mask.weights',
         'file_id': '1stbsUnWeZaqSQjGfcwQp0kQ0njcBqRUj'
     },
 ]
+
 
 def download_file_from_google_drive(id, destination):
     url = "https://docs.google.com/uc?export=download"
@@ -47,7 +53,11 @@ def save_response_content(response, destination):
                 f.write(chunk)
 
 
+
 def download_yolov3_weights():
+    '''
+    Downloads all files listed on the HOSTED_FILES variable above
+    '''
     for file_dict in HOSTED_FILES:
         download_file_from_google_drive(file_dict['file_id'], file_dict['filename'])
     return True

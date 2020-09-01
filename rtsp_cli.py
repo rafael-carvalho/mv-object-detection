@@ -32,7 +32,6 @@ TARGET_CAMERAS = None
 def add_text_annotation_to_video(frame, frame_counter, camera_info, contextual_annotations):
     '''
     Quick way to add text to an image. We paint a rectangle and overlay some text in white over it.
-
     '''
     prepended_annotations = list()
     prepended_annotations.append(f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')

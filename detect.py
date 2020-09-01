@@ -147,8 +147,6 @@ def detect_objects(input_path=None, output_path=None, show_window=False, input_a
         # Remove the pop-up window
         cv2.destroyAllWindows()
 
-
-
     # Lists of the detected classes
     output_classes = list()
     for id in class_ids:
@@ -166,24 +164,25 @@ def detect_objects(input_path=None, output_path=None, show_window=False, input_a
 
 def get_output_layers(net):
     layer_names = net.getLayerNames()
-
     output_layers = [layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
-
     return output_layers
 
 
 def draw_prediction(img, class_id, confidence, x, y, x_plus_w, y_plus_h, classes, colors):
+    '''
+    Draws the rectangle around the object with the class name and the confidence level perceived by the model
+    '''
     label = str(classes[class_id])
-
     color = colors[class_id]
-
     cv2.rectangle(img, (x, y), (x_plus_w, y_plus_h), color, 2)
-
     cv2.putText(img, f'{label} (' + '%.2g' % confidence + ')', (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
 
 
 def add_text_annotation_to_video(frame, frame_counter, camera_info, contextual_annotations):
+    '''
+    Quick way to add text to an image. We paint a rectangle and overlay some text in white over it.
+    '''
     prepended_annotations = list()
     prepended_annotations.append(f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
     prepended_annotations.append(f'Current frame: {frame_counter}')
@@ -211,7 +210,7 @@ def add_text_annotation_to_video(frame, frame_counter, camera_info, contextual_a
     return frame
 
 
-def process_rtsp_stream(link, show_window, camera_info=None, weights=None, fps_throttle=30, width=640, height=320):
+def process_rtsp_stream(link, show_window, camera_info=None, weights=None, conf_threshold=0.6, fps_throttle=30, width=640, height=320):
     if not weights:
         weights = utils.YOLO_WEIGHTS
 
@@ -221,6 +220,7 @@ def process_rtsp_stream(link, show_window, camera_info=None, weights=None, fps_t
     frame_counter = 0
     error_counter = 0
     error_threshold = 10
+
     while True:
         # Capture frame-by-frame
         ret, frame = cap.read()
@@ -247,7 +247,7 @@ def process_rtsp_stream(link, show_window, camera_info=None, weights=None, fps_t
             else:
                 print(f'Detecting objects in frame {frame_counter}')
                 qnt_objects, output_classes, annotated_image = detect_objects(input_array=frame,
-                                                                              conf_threshold=0.6,
+                                                                              conf_threshold=conf_threshold,
                                                                               yolo_weights=f'{utils.YOLO_WEIGHTS_FOLDER}/{weights}'
                                                                               )
                 annotations.append(f'Using {weights}')

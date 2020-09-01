@@ -27,6 +27,7 @@
                 <div id="stream_info" class="container">
                   <p class="row"><span id="rtsp_link"></span></p>
                   <p class="row">Model: <span id="model_name"></span></p>
+                <p class="row">Confidence Threshold: <span id="confidence_threshold_name"></span></p>
               </div>
                   <br />
                   <img id="stream" src="" class="container" />
@@ -80,17 +81,32 @@
             {% endif %}
             <small id="cameras_help" class="form-text text-muted">Offline cameras are disabled</small>
           </div>
-        <div class="form-group" >
-        <label for="model">Model</label>
-            <select id="model" name="model" class="" data-sequence="3" required>
-                {% for w in weights %}
-                    <option value="{{w|replace('yolo-weights/', '')}}" selected>{{w|replace("yolo-weights/", "")}}</option>
-                {% endfor %}
-            </select>
-        </select>
+        <div class="form-group">
+            <div class="row">
+                <div class="col container">
+                    <label for="model" class="">Model</label>
+                    <select id="model" name="model" class="" required>
+                        {% for w in weights %}
+                            <option value="{{w|replace('yolo-weights/', '')}}" selected>{{w|replace("yolo-weights/", "")}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            <div class="">
+                <div class="col ">
+                    <label class="" for="confidence_threshold">Confidence Threshold in</label>
+                <select  class="" id="confidence_threshold" name="confidence_threshold">
+                    {% for n in range(10) %}
+                        <option value="{{n * 10}}" {% if n == 6 %} selected {% endif %}>{{n * 10}}%</option>
+                    {% endfor %}
+
+                </select>
+                <small id="confidence_threshold_help" class="form-text text-muted">Level of confidence in %. Number between 00 and 99. Higher confidence means the model will only detect an object when it is really sure about that. Higher confidences may also mean that your model doesn't recognize anything.</small>
+            </div>
+            </div>
+
       </div>
           <button type="submit" class="btn btn-secondary" id="btn">Go!</button>
-        <small id="" class="form-text text-muted">Make sure you press the button every time you change a field</small>
+            <small id="" class="form-text text-muted">Make sure you press the button every time you change a field</small>
           <img id="loading" src="static/img/loading.gif" style="display: none;"/>
         </form>
     </main><!-- /.container -->

@@ -38,9 +38,6 @@ def add_text_annotation_to_video(frame, frame_counter, camera_info, contextual_a
     return frame
 
 
-
-
-
 @app.route('/form', methods=['POST'])
 def process_form():
     '''
@@ -165,12 +162,12 @@ def process_form():
         return make_response(json.dumps(output), status_code)
 
 
-@app.route('/video_feed/weights/<weights>/link/<path:link>/')
-def video_feed(link, weights):
+@app.route('/video_feed/weights/<weights>/confidence/<confidence>/link/<path:link>/')
+def video_feed(link, weights, confidence):
     '''
     Yields the RTSP stream with annotations.
     '''
-    return Response(detect.process_rtsp_stream(link=link, weights=weights, show_window=False),
+    return Response(detect.process_rtsp_stream(link=link, weights=weights, conf_threshold=float(confidence), show_window=False),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 

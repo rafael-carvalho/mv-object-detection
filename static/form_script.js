@@ -89,7 +89,9 @@ $( document ).ready(function() {
                 } else {
                     console.log(data.rtsp_link)
                     var weights = $('#model').val()
-                    startStream(data.rtsp_link, weights);
+                    var confidence_threshold = $('#confidence_threshold').val()
+
+                    startStream(data.rtsp_link, weights, confidence_threshold);
                     request_classes(weights)
                 }
 
@@ -118,13 +120,15 @@ $( document ).ready(function() {
     //$('#btn').click();
 });
 
-function startStream(rtsp_link, weights) {
+function startStream(rtsp_link, weights, confidence_threshold) {
     $('#stream_parent').show();
     $('#rtsp_link').text(rtsp_link);
     $('#model_name').text(weights)
-    url = '/video_feed' + '/weights/' + weights + '/link/' + rtsp_link
-    $('#stream').attr('src', encodeURI(url))
+    $('#confidence_threshold_name').text(confidence_threshold)
+    url = '/video_feed' + '/weights/' + weights + '/confidence/' + (parseInt(confidence_threshold) / 100) + '/link/' + rtsp_link
     console.log(url)
+    $('#stream').attr('src', encodeURI(url))
+
 }
 
 function request_classes(weights) {

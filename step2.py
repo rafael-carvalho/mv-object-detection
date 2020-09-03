@@ -40,7 +40,7 @@ if __name__ == '__main__':
             snapshot_url = snapshot_output['url']
             print('    Processing objects')
             saved_image_path = utils.download_file(f'{utils.FOLDER_SNAPSHOTS}/{serial_number}.png', snapshot_url)
-            detections, classes, output_path = detect_objects(saved_image_path, show_window=False, conf_threshold=0.3)
+            detections, classes, output_path = detect_objects(saved_image_path, show_window=False)
             if detections > 0:
                 print(f'    {detections} object of {len(set(classes))} '
                       f'different classes = {str(classes)}.')

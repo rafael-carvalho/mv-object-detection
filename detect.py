@@ -14,9 +14,11 @@ import utils
 from datetime import datetime
 import time
 
-######### HYPERPARAMETERS
+######### HYPERPARAMETERS (DEFAULT VALUES)
+### You don't have to change these for the adventure lab!! ##############
 NMS_THRESHOLD = 0.4
 CONF_THRESHOLD = 0.5
+#### Don't change these unless you know what you are doing ;) ##############
 
 global COLORS
 COLORS = None
@@ -31,6 +33,7 @@ def detect_objects(input_path=None, output_path=None, show_window=False, input_a
     :param show_window: if set to True, a window will pop-up with the image. If False, the image will only be saved.
     :param conf_threshold: double between 0 and 1 that represents the minimum confidence of the detection to be
     considered a detection
+    :param input_array: numpy array with the representation of the image
     :param nms_threshold: double between 0 and 1 - Non-maximum Suppression threshold.
     :param yolo_weights: str filepath to the model that has been trained (weights)
     :param yolo_cfg: str filepath to YOLO configuration file
@@ -178,7 +181,6 @@ def draw_prediction(img, class_id, confidence, x, y, x_plus_w, y_plus_h, classes
     cv2.putText(img, f'{label} (' + '%.2g' % confidence + ')', (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
 
-
 def add_text_annotation_to_video(frame, frame_counter, camera_info, contextual_annotations):
     '''
     Quick way to add text to an image. We paint a rectangle and overlay some text in white over it.
@@ -260,7 +262,7 @@ def process_rtsp_stream(link, show_window, camera_info=None, weights=None, conf_
                 frame_out = annotated_image
                 print(f'{qnt_objects} objects detected')
 
-                # encode OpenCV raw frame to jpg and displaying it
+            # encode OpenCV raw frame to jpg and displaying it
             add_text_annotation_to_video(frame, frame_counter, camera_info, annotations)
             if show_window:
                 cv2.imshow(link, frame_out)

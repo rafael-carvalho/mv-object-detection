@@ -71,9 +71,11 @@
           </div>
           <div class="form-group" >
             <label for="cameras">Camera</label>
-            {% if api_key and organization_id and network_id and rtsp %}
+            {% if api_key and organization_id and network_id and target_cameras %}
                 <select id="cameras" name="cameras" class="triggers" data-sequence="3" required>
-                  <option value="{{rtsp}}" selected>{{rtsp}}</option>
+                  {% for c in target_cameras %}
+                      <option value="{{c}}" selected>{{c}}</option>
+                  {% endfor %}
                 </select>
             {% else %}
                 <select id="cameras" name="cameras" class="triggers" data-sequence="3" disabled required>

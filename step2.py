@@ -28,32 +28,36 @@ if __name__ == '__main__':
     dashboard = utils.establish_meraki_connection(api_key)
     cams = utils.get_cameras(dashboard, network_id, target_cameras)
     print(f'Will process snapshots of {len(cams)} MV cameras')
-    for cam in cams:
-        serial_number = cam['serial']
-        model = cam['model']
-        print('---------')
-        print(f'{serial_number} ({model})')
-        try:
-            print('    Generating snapshot')
-            snapshot_output = dashboard.camera.generateDeviceCameraSnapshot(serial_number)
-            print('    Downloaded snapshot')
-            snapshot_url = snapshot_output['url']
-            print('    Processing objects')
-            saved_image_path = utils.download_file(f'{utils.FOLDER_SNAPSHOTS}/{serial_number}.png', snapshot_url)
-            detections, classes, output_path = detect_objects(saved_image_path, show_window=False)
-            if detections > 0:
-                print(f'    {detections} object of {len(set(classes))} '
-                      f'different classes = {str(classes)}.')
+    if not cams:
+        raise Exception(f'The network ({network_id}) used does not contain cameras or the cameras you selected are '
+                        'not on the selected network.')
+    else:
+        for cam in cams:
+            serial_number = cam['serial']
+            model = cam['model']
+            print('---------')
+            print(f'{serial_number} ({model})')
+            try:
+                print('    Generating snapshot')
+                snapshot_output = dashboard.camera.generateDeviceCameraSnapshot(serial_number)
+                print('    Downloaded snapshot')
+                snapshot_url = snapshot_output['url']
+                print('    Processing objects')
+                saved_image_path = utils.download_file(f'{utils.FOLDER_SNAPSHOTS}/{serial_number}.png', snapshot_url)
+                detections, classes, output_path = detect_objects(saved_image_path, show_window=False)
+                if detections > 0:
+                    print(f'    {detections} object of {len(set(classes))} '
+                          f'different classes = {str(classes)}.')
 
-            else:
-                print(f"    No objects were detected.")
+                else:
+                    print(f"    No objects were detected.")
 
-            print(f'    {output_path}')
+                print(f'    {output_path}')
 
-        except meraki.exceptions.APIError:
-            print(f"    Error downloading the snapshot. Is the camera online?")
+            except meraki.exceptions.APIError:
+                print(f"    Error downloading the snapshot. Is the camera online?")
 
-        except:
-            print(f"    An unknown error happened when processing camera {serial_number}."
-                  f"Uncomment line below for more details")
-            # traceback.print_exc()
+            except:
+                print(f"    An unknown error happened when processing camera {serial_number}."
+                      f"Uncomment line below for more details")
+                # traceback.print_exc()

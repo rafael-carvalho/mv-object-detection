@@ -89,7 +89,7 @@
                     <label for="model" class="">Model</label>
                     <select id="model" name="model" class="" required>
                         {% for w in weights %}
-                            <option value="{{w|replace('yolo-weights/', '')}}" selected>{{w|replace("yolo-weights/", "")}}</option>
+                            <option value='{{w|replace("yolo-weights/", "")}}' {% if "yolov3-coco.weights" in w %} selected {% endif %}>{{w|replace("yolo-weights/", "")}}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -98,11 +98,11 @@
                     <label class="" for="confidence_threshold">Confidence Threshold in</label>
                 <select  class="" id="confidence_threshold" name="confidence_threshold">
                     {% for n in range(10) %}
-                        <option value="{{n * 10}}" {% if n == 6 %} selected {% endif %}>{{n * 10}}%</option>
+                        <option value="{{n * 10}}" {% if n == 4 %} selected {% endif %}>{{n * 10}}%</option>
                     {% endfor %}
 
                 </select>
-                <small id="confidence_threshold_help" class="form-text text-muted">Higher confidence means the model will only detect an object when it is really sure about that. The mask detection model perform well with 30% confidence.</small>
+                <small id="confidence_threshold_help" class="form-text text-muted">Higher confidence means the model will only detect an object when it is really sure about that. The mask detection model performs well with 30% confidence.</small>
             </div>
             </div>
 

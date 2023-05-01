@@ -1,4 +1,4 @@
-Flask==1.1.2
+Flask==2.3.2
 googledrivedownloader==0.4
 meraki==1.0.0
 numpy==1.18.4
